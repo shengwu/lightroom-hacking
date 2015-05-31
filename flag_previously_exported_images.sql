@@ -12,10 +12,9 @@ pick
 1.0
 
 -- Flag all images that have been previously exported
-
 UPDATE Adobe_images
 SET pick = 1.0
-WHERE local_id IN 
+WHERE id_local IN
 (SELECT image.id_local FROM Adobe_images AS image
 JOIN Adobe_libraryImageDevelopHistoryStep AS step
-WHERE image.id_local = step.image AND step.name NOT LIKE "%Export%");
+WHERE image.id_local = step.image AND step.name LIKE "Export%");

@@ -121,10 +121,10 @@ Excellent. Finally, we make a backup copy of the catalog file and run the follow
 ```
 UPDATE Adobe_images
 SET pick = 1.0
-WHERE id_local IN 
+WHERE id_local IN
 (SELECT image.id_local FROM Adobe_images AS image
 JOIN Adobe_libraryImageDevelopHistoryStep AS step
-WHERE image.id_local = step.image AND step.name NOT LIKE "%Export%");
+WHERE image.id_local = step.image AND step.name LIKE "Export%");
 ```
 
 With fingers crossed, I open Lightroom. Yes, it worked! All that remains is to remove the images that I've exported for HDR processing and other photos that I don't want to include in my library.
