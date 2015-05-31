@@ -7,7 +7,7 @@ So Google Photos is awesome. It has already backed up all of the photos on my ph
 
 The solution
 ------------
-Well, I thought about going through and flagging each of the exported photos manually. But there has to be a better way. Maybe the catalog files would be a good place to start. (hopefully they're not binary files)
+Well, I thought about going through and flagging each of the exported photos manually. But there has to be a better way. Maybe the catalog files would be a good place to start. Hopefully they're not incomprehensible binary blobs.
 
 ```
 ➜  Lightroom  head Lightroom\ 5\ Catalog.lrcat
@@ -105,3 +105,40 @@ WhiteBalance = "As Shot" }
 ```
 
 These two tables should be enough to give us the ids of all images that we've exported. Plan: filter the develop steps by keeping the ones that have a `name` field containing the word "Export".
+
+But where are the flags kept? After exploring a bunch of the other tables, I look at `Adobe_images` again and suspect that it's in the `pick` column. To confirm, let's look at the possible values:
+
+```
+sqlite> select distinct pick from Adobe_images;
+pick
+0.0
+-1.0
+1.0
+```
+
+Excellent. Finally, we make a backup copy of the catalog file and run the following to flag all previously exported images. (probably not the best SQL)
+
+```
+UPDATE Adobe_images
+SET pick = 1.0
+WHERE id_local IN 
+(SELECT image.id_local FROM Adobe_images AS image
+JOIN Adobe_libraryImageDevelopHistoryStep AS step
+WHERE image.id_local = step.image AND step.name NOT LIKE "%Export%");
+```
+
+With fingers crossed, I open Lightroom. Yes, it worked! All that remains is to remove the images that I've exported for HDR processing and other photos that I don't want to include in my library.
+
+Note: please proceed carefully and make backups before running any commands on your catalog. I'm not responsible if this deletes all of your edit history or sets your cat on fire.
+
+License
+-------
+MIT LICENSE
+
+Copyright (c) 2015 Sheng Wu
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
